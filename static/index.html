@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 资讯聚合 — 全网 AI 资讯一站式阅读</title>
+    <meta name="description" content="自动聚合全网 AI 资讯，智能分类和摘要">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- 背景装饰 -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    <div class="bg-glow bg-glow-3"></div>
+
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="header-inner">
+            <div class="logo">
+                <span class="logo-icon">⚡</span>
+                <h1>AI 资讯聚合</h1>
+                <span class="logo-badge">LIVE</span>
+            </div>
+            <div class="header-actions">
+                <div class="search-box">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="搜索资讯..." />
+                </div>
+                <button class="btn-refresh" id="btnRefresh" title="手动刷新">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 统计栏 -->
+    <div class="stats-bar">
+        <div class="stats-inner">
+            <div class="stat-item">
+                <span class="stat-value" id="statTotal">-</span>
+                <span class="stat-label">总文章</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="statToday">-</span>
+                <span class="stat-label">今日新增</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="statUnread">-</span>
+                <span class="stat-label">未读</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="statSources">-</span>
+                <span class="stat-label">来源</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容 -->
+    <main class="main-content">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">分类</h3>
+                <nav class="category-nav" id="categoryNav">
+                    <button class="category-btn active" data-category="全部">
+                        <span class="cat-icon">📋</span>
+                        <span class="cat-name">全部</span>
+                        <span class="cat-count" id="countAll">0</span>
+                    </button>
+                    <button class="category-btn" data-category="大模型">
+                        <span class="cat-icon">🧠</span>
+                        <span class="cat-name">大模型</span>
+                        <span class="cat-count" id="countLLM">0</span>
+                    </button>
+                    <button class="category-btn" data-category="AI应用">
+                        <span class="cat-icon">🚀</span>
+                        <span class="cat-name">AI应用</span>
+                        <span class="cat-count" id="countApp">0</span>
+                    </button>
+                    <button class="category-btn" data-category="论文">
+                        <span class="cat-icon">📄</span>
+                        <span class="cat-name">论文</span>
+                        <span class="cat-count" id="countPaper">0</span>
+                    </button>
+                    <button class="category-btn" data-category="行业动态">
+                        <span class="cat-icon">📊</span>
+                        <span class="cat-name">行业动态</span>
+                        <span class="cat-count" id="countIndustry">0</span>
+                    </button>
+                    <button class="category-btn" data-category="开源">
+                        <span class="cat-icon">💻</span>
+                        <span class="cat-name">开源</span>
+                        <span class="cat-count" id="countOpenSource">0</span>
+                    </button>
+                    <button class="category-btn" data-category="综合">
+                        <span class="cat-icon">🌐</span>
+                        <span class="cat-name">综合</span>
+                        <span class="cat-count" id="countGeneral">0</span>
+                    </button>
+                </nav>
+            </div>
+
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">语言</h3>
+                <div class="lang-filter" id="langFilter">
+                    <button class="lang-btn active" data-lang="all">全部</button>
+                    <button class="lang-btn" data-lang="zh">中文</button>
+                    <button class="lang-btn" data-lang="en">English</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 文章列表 -->
+        <section class="articles-section">
+            <div class="articles-header">
+                <h2 id="sectionTitle">全部资讯</h2>
+                <span class="articles-count" id="articlesCount"></span>
+            </div>
+
+            <!-- 加载状态 -->
+            <div class="loading-state" id="loadingState">
+                <div class="loading-spinner"></div>
+                <p>正在加载资讯...</p>
+            </div>
+
+            <!-- 空状态 -->
+            <div class="empty-state" id="emptyState" style="display:none;">
+                <span class="empty-icon">📭</span>
+                <h3>暂无资讯</h3>
+                <p>正在拼命抓取中，请稍后刷新查看...</p>
+                <button class="btn-primary" onclick="manualFetch()">立即抓取</button>
+            </div>
+
+            <!-- 文章列表 -->
+            <div class="articles-grid" id="articlesGrid"></div>
+
+            <!-- 分页 -->
+            <div class="pagination" id="pagination"></div>
+        </section>
+    </main>
+
+    <!-- Toast 通知 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
