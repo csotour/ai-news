@@ -62,17 +62,25 @@ pip install -r requirements.txt
 
 ### 配置
 
-编辑 `config.py`，填写你的 LLM API 信息：
+推荐使用环境变量配置 API Key（更安全，不会写入仓库）：
 
-```python
-# 当前使用 ModelScope（魔搭）API
-LLM_BASE_URL = "https://api-inference.modelscope.cn/v1"
-LLM_API_KEY = "你的 ModelScope Token"
-LLM_MODEL = "Qwen/Qwen3.5-35B-A3B"
+```powershell
+# 当前终端会话生效
+$env:LLM_API_KEY="你的 ModelScope Token"
+python app.py
 ```
 
-也可以替换为其他 OpenAI 兼容的 API（如 DeepSeek、硅基流动、NVIDIA NIM 等），只需修改以上三项即可。
+如果想长期生效（Windows 当前用户）：
 
+```powershell
+setx LLM_API_KEY "你的 ModelScope Token"
+# 关闭并重新打开终端后再运行
+python app.py
+```
+
+`config.py` 中只需保留通用配置（如 `LLM_BASE_URL` 和 `LLM_MODEL`），默认会自动读取环境变量 `LLM_API_KEY`。
+
+也可以替换为其他 OpenAI 兼容的 API（如 DeepSeek、硅基流动、NVIDIA NIM 等），通常只需修改 `LLM_BASE_URL` 与 `LLM_MODEL`。
 ### 启动
 
 **方式一：双击 bat 文件（推荐）**
@@ -143,6 +151,28 @@ python app.py
 | `HOST` | `127.0.0.1` | 服务地址 |
 | `PORT` | `8000` | 服务端口 |
 
+## 🧩 常见问题
+
+### 1) 为什么没有生成 AI 摘要？
+
+通常是因为 `LLM_API_KEY` 未生效。可用下面命令自检：
+
+```powershell
+python -c "import config; print(len(config.LLM_API_KEY))"
+```
+
+如果输出为 `0`，说明当前会话没有拿到 Key，请先执行：
+
+```powershell
+$env:LLM_API_KEY="你的真实API Key"
+```
+
+然后手动触发一次抓取（页面右上角刷新按钮或 `POST /api/fetch`）。
+
+### 2) 摘要是一次性全部生成吗？
+
+不是。系统每轮会按批次处理未摘要文章（默认每轮有限额），这是为了避免触发 API 限速。
+
 ## 🔌 API 接口
 
 | 方法 | 路径 | 说明 |
@@ -175,7 +205,7 @@ MIT
 
 | 文件 / 目录 | 原因 |
 |---|---|
-| `config.py` | 含真实 API Key，敏感信息 |
+| `config.py` | 本地运行配置（建议仍勿提交个人化改动） |
 | `*.db` | 本地数据库，体积大且无需共享 |
 | `__pycache__/` | Python 编译缓存 |
 | `.venv/` / `venv/` | 虚拟环境 |
@@ -191,18 +221,20 @@ git commit -m "init: AI 资讯聚合工具"
 
 ### 新成员快速上手
 
-```bash
+```powershell
 git clone <仓库地址>
 cd 资讯收集
 
-# 1. 从模板创建配置文件
-cp config.example.py config.py
-# 编辑 config.py，填写自己的 API Key
+# 1. 可选：复制配置模板（仅修改 URL/模型等通用项）
+copy config.example.py config.py
 
-# 2. 安装依赖
+# 2. 配置 API Key（当前终端有效）
+$env:LLM_API_KEY="你的真实API Key"
+
+# 3. 安装依赖
 pip install -r requirements.txt
 
-# 3. 启动服务
+# 4. 启动服务
 python app.py
 # 访问 http://127.0.0.1:8000
 ```

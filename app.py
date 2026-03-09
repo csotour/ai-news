@@ -2,10 +2,11 @@
 AI 资讯聚合工具 - FastAPI 主应用
 """
 import asyncio
+import os
 from contextlib import asynccontextmanager
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -18,6 +19,21 @@ from services.ai_summary import process_pending_articles
 # ===================== 定时任务 =====================
 scheduler = AsyncIOScheduler()
 _is_fetching = False
+
+
+def _config_self_check():
+    """启动配置自检，输出必要提示。"""
+    print("=" * 50)
+    print("🔍 启动配置自检")
+    print(f"  HOST/PORT: {config.HOST}:{config.PORT}")
+    print(f"  抓取间隔: 每 {config.FETCH_INTERVAL_MINUTES} 分钟")
+    print(f"  RSS 源数量: {len(config.RSS_SOURCES)}")
+    if config.LLM_API_KEY:
+        print(f"  LLM 摘要: 已启用（模型: {config.LLM_MODEL}）")
+    else:
+        print("  ⚠️ LLM 摘要: 未启用（缺少环境变量 LLM_API_KEY）")
+        print("     仍可抓取和浏览资讯，仅不会生成 AI 摘要。")
+    print("=" * 50)
 
 
 async def scheduled_fetch():
@@ -44,7 +60,7 @@ async def scheduled_fetch():
         print(f"📥 HN: 新增 {hn_inserted} 篇文章")
 
         # 3. 生成 AI 摘要
-        if config.LLM_API_KEY and config.LLM_API_KEY != "在此填写你的API Key":
+        if config.LLM_API_KEY:
             await process_pending_articles(batch_size=15, delay=1.5)
         else:
             print("⚠️  未配置 LLM API Key，跳过摘要生成")
@@ -65,6 +81,7 @@ async def scheduled_fetch():
 async def lifespan(app: FastAPI):
     """应用启动和关闭事件"""
     # 启动
+    _config_self_check()
     await database.init_db()
     print("✅ 数据库初始化完成")
 
@@ -93,8 +110,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="AI 资讯聚合", lifespan=lifespan)
 
 # 挂载静态文件
-import os
-
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
@@ -130,7 +145,7 @@ async def get_article(article_id: int):
     """获取单篇文章"""
     article = await database.get_article_by_id(article_id)
     if not article:
-        return {"error": "文章不存在"}, 404
+        raise HTTPException(status_code=404, detail="文章不存在")
     return article
 
 

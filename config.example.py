@@ -1,6 +1,6 @@
 """
 AI 资讯聚合工具 - 配置模板
-复制此文件为 config.py 并填写相关配置后启动服务。
+复制此文件为 config.py 后，配置环境变量 LLM_API_KEY 再启动服务。
 """
 import os
 
@@ -10,9 +10,13 @@ import os
 #   DeepSeek:          https://api.deepseek.com/v1
 #   硅基流动:           https://api.siliconflow.cn/v1
 #   NVIDIA NIM:        https://integrate.api.nvidia.com/v1
+#
+# 运行前请先设置环境变量（Windows PowerShell 示例）：
+#   临时（当前终端）：$env:LLM_API_KEY="你的真实API Key"
+#   永久（当前用户）：setx LLM_API_KEY "你的真实API Key"
 
 LLM_BASE_URL = "https://api-inference.modelscope.cn/v1"
-LLM_API_KEY  = os.getenv("LLM_API_KEY", "你的API Key填到这里")
+LLM_API_KEY  = os.getenv("LLM_API_KEY", "").strip()
 LLM_MODEL    = "Qwen/Qwen3.5-35B-A3B"   # 替换为你所用 API 支持的模型名称
 LLM_MAX_TOKENS    = 300      # AI 摘要最大 token 数（勿设太大）
 LLM_SUMMARY_DELAY = 3.0      # 每篇文章生成摘要的间隔秒数，防止触发限速
